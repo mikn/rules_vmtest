@@ -1,0 +1,29 @@
+load("@rules_go//go:def.bzl", "go_test")
+load("@rules_vmtest//vmtest:config.bzl", "vmtest_config")
+
+# vmtest_config resolves QEMU toolchains and generates a go_library
+# that sets VMTEST_* env vars via init(). The go_test depends on it
+# as a regular dep — no wrapper script needed.
+vmtest_config(
+    name = "vmconfig",
+    importpath = "rules_vmtest/examples/kernel_boot/vmconfig",
+    # --- Replace these with your own targets ---
+    # kernel = "//your/kernel:vmlinuz",
+    # initrd = "//your/rootfs:initrd",
+    cmdline = "console=ttyS0 panic=-1 rdinit=/init",
+    memory = "1G",
+    cpus = 2,
+    network = "none",
+)
+
+# A standard go_test — no custom rule needed.
+go_test(
+    name = "boot_test",
+    srcs = ["boot_test.go"],
+    deps = [":vmconfig"],
+    tags = [
+        "exclusive",
+        "no-sandbox",
+        "requires-kvm",
+    ],
+)

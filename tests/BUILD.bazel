@@ -1,0 +1,145 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_qemu//qemu:toolchain.bzl", "qemu_toolchain")
+load("@rules_vmtest//vmtest:vm_go_test.bzl", "vm_go_test")
+load(":mock_toolchains.bzl", "mock_swtpm_toolchain")
+load(
+    ":vm_go_test_analysis.bzl",
+    "basic_env_vars_test",
+    "bridge_network_test",
+    "runfiles_test",
+    "tpm_env_vars_test",
+)
+
+# --- Mock QEMU toolchain for testing ---
+
+genrule(
+    name = "dummy_ovmf_code",
+    outs = ["dummy_code.fd"],
+    cmd = "dd if=/dev/zero of=$@ bs=1 count=64 2>/dev/null",
+)
+
+genrule(
+    name = "dummy_ovmf_vars",
+    outs = ["dummy_vars.fd"],
+    cmd = "dd if=/dev/zero of=$@ bs=1 count=64 2>/dev/null",
+)
+
+genrule(
+    name = "dummy_swtpm",
+    outs = ["swtpm"],
+    cmd = "echo '#!/bin/sh' > $@ && chmod +x $@",
+    executable = True,
+)
+
+genrule(
+    name = "dummy_swtpm_setup",
+    outs = ["swtpm_setup"],
+    cmd = "echo '#!/bin/sh' > $@ && chmod +x $@",
+    executable = True,
+)
+
+qemu_toolchain(
+    name = "mock_qemu_tc",
+    arch = "x86_64",
+    ovmf_code = ":dummy_ovmf_code",
+    ovmf_vars = ":dummy_ovmf_vars",
+)
+
+toolchain(
+    name = "mock_qemu_toolchain",
+    toolchain = ":mock_qemu_tc",
+    toolchain_type = "@rules_qemu//qemu:toolchain_type",
+)
+
+# Mock swtpm toolchains using a simple rule that provides ToolchainInfo
+mock_swtpm_toolchain(
+    name = "mock_swtpm_tc",
+    executable = ":dummy_swtpm",
+)
+
+toolchain(
+    name = "mock_swtpm_toolchain",
+    toolchain = ":mock_swtpm_tc",
+    toolchain_type = "@rules_qemu//qemu:swtpm_type",
+)
+
+mock_swtpm_toolchain(
+    name = "mock_swtpm_setup_tc",
+    executable = ":dummy_swtpm_setup",
+)
+
+toolchain(
+    name = "mock_swtpm_setup_toolchain",
+    toolchain = ":mock_swtpm_setup_tc",
+    toolchain_type = "@rules_qemu//qemu:swtpm_setup_type",
+)
+
+# --- Mock test binary ---
+
+sh_binary(
+    name = "mock_test",
+    srcs = ["mock_test.sh"],
+)
+
+# --- Test subjects for vm_go_test analysis ---
+
+vm_go_test(
+    name = "basic_subject",
+    cpus = 4,
+    memory = "4G",
+    tags = ["manual"],
+    test = ":mock_test",
+)
+
+vm_go_test(
+    name = "bridge_subject",
+    bridge_name = "test-br0",
+    memory = "2G",
+    network = "bridge",
+    tags = ["manual"],
+    test = ":mock_test",
+)
+
+vm_go_test(
+    name = "tpm_subject",
+    memory = "2G",
+    tags = ["manual"],
+    test = ":mock_test",
+    tpm = True,
+)
+
+# --- Analysis tests ---
+
+basic_env_vars_test(
+    name = "basic_env_vars_test",
+    target_under_test = ":basic_subject",
+)
+
+bridge_network_test(
+    name = "bridge_network_test",
+    target_under_test = ":bridge_subject",
+)
+
+tpm_env_vars_test(
+    name = "tpm_env_vars_test",
+    target_under_test = ":tpm_subject",
+)
+
+runfiles_test(
+    name = "runfiles_test",
+    target_under_test = ":basic_subject",
+)
+
+# --- Build tests for Go artifacts ---
+
+build_test(
+    name = "go_artifacts_build_test",
+    targets = [
+        "@rules_vmtest//agent",
+        "@rules_vmtest//agent:agent_tar",
+        "@rules_vmtest//agentpb",
+        "@rules_vmtest//machine",
+        "@rules_vmtest//vm",
+    ],
+)
+

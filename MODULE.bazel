@@ -1,0 +1,66 @@
+module(
+    name = "rules_vmtest",
+    version = "0.1.0",
+)
+
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "bazel_skylib", version = "1.8.1")
+bazel_dep(name = "rules_go", version = "0.57.0")
+bazel_dep(name = "gazelle", version = "0.44.0")
+bazel_dep(name = "rules_qemu", version = "0.1.0")
+bazel_dep(name = "rules_linux", version = "0.1.0")
+bazel_dep(name = "rules_pkg", version = "1.1.0")
+bazel_dep(name = "aspect_bazel_lib", version = "2.19.2")
+
+# Test toolchains — only registered when rules_vmtest is the root module
+register_toolchains(
+    "//tests:mock_qemu_toolchain",
+    "//tests:mock_swtpm_toolchain",
+    "//tests:mock_swtpm_setup_toolchain",
+    dev_dependency = True,
+)
+
+# --- E2E test dependencies (dev only) ---
+
+# LLVM toolchain for kernel_build
+bazel_dep(name = "toolchains_llvm", version = "1.4.0", dev_dependency = True)
+
+llvm = use_extension(
+    "@toolchains_llvm//toolchain/extensions:llvm.bzl",
+    "llvm",
+    dev_dependency = True,
+)
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "19.1.7",
+)
+use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
+register_toolchains("@llvm_toolchain//:all", dev_dependency = True)
+
+# Kernel source for E2E test kernel build
+kernel_sources = use_extension(
+    "@rules_linux//linux:extensions.bzl",
+    "kernel_sources",
+    dev_dependency = True,
+)
+kernel_sources.source(
+    name = "vmtest_kernel_source",
+    sha256 = "f3ebdeea9e555b4cface44e29670056f4024541e6bd222fbcf776c818974fbba",
+    version = "6.12.13",
+)
+use_repo(kernel_sources, "vmtest_kernel_source")
+
+# Static busybox binary for E2E test rootfs
+test_artifacts = use_extension(
+    "@rules_linux//linux:extensions.bzl",
+    "test_artifacts",
+    dev_dependency = True,
+)
+test_artifacts.http_file(
+    name = "test_busybox",
+    downloaded_file_name = "busybox",
+    executable = True,
+    sha256 = "6e123e7f3202a8c1e9b1f94d8941580a25135382b99e8d3e34fb858bba311348",
+    urls = ["https://busybox.net/downloads/binaries/1.35.0-x86_64-linux-musl/busybox"],
+)
+use_repo(test_artifacts, "test_busybox")

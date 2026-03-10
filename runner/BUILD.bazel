@@ -1,0 +1,17 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "runner",
+    srcs = [
+        "config.go",
+        "network.go",
+        "process_manager.go",
+        "qemu.go",
+        "runner.go",
+        "tpm.go",
+        "utils.go",
+    ],
+    importpath = "rules_vmtest/runner",
+    visibility = ["//visibility:public"],
+    deps = ["@rules_vmtest//vm"],
+)

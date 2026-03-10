@@ -1,0 +1,15 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "testrunner_lib",
+    srcs = ["main.go"],
+    importpath = "rules_vmtest/vmtest/cmd/testrunner",
+    visibility = ["//visibility:private"],
+    deps = ["@rules_vmtest//vm"],
+)
+
+go_binary(
+    name = "testrunner",
+    embed = [":testrunner_lib"],
+    visibility = ["//visibility:public"],
+)

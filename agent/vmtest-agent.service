@@ -1,0 +1,12 @@
+[Unit]
+Description=VMTest Agent
+After=sysinit.target
+ConditionVirtualization=vm
+
+[Service]
+Type=simple
+ExecStart=/usr/lib/vmtest/agent
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
