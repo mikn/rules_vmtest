@@ -15,7 +15,7 @@ import (
 	"syscall"
 	"time"
 
-	"rules_vmtest/vm"
+	"github.com/mikn/rules_vmtest/vm"
 )
 
 // ProcessManager handles cleanup of all spawned processes

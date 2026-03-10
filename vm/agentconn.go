@@ -8,7 +8,7 @@ import (
 	"net/rpc/jsonrpc"
 	"time"
 
-	"rules_vmtest/agentpb"
+	"github.com/mikn/rules_vmtest/agentpb"
 )
 
 // AgentConn is the host-side RPC client for the guest agent.

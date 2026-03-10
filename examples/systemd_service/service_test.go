@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"rules_vmtest/examples/systemd_service/vmconfig"
+	"github.com/mikn/rules_vmtest/examples/systemd_service/vmconfig"
 )
 
 func TestSystemdService(t *testing.T) {

@@ -3,7 +3,7 @@ package runner
 import (
 	"os"
 
-	"rules_vmtest/vm"
+	"github.com/mikn/rules_vmtest/vm"
 )
 
 func fileExists(path string) bool {

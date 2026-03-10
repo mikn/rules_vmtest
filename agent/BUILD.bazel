@@ -7,7 +7,7 @@ go_library(
         "agent.go",
         "main.go",
     ],
-    importpath = "rules_vmtest/agent",
+    importpath = "github.com/mikn/rules_vmtest/agent",
     visibility = ["//visibility:private"],
     deps = ["@rules_vmtest//agentpb"],
 )

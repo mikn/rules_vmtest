@@ -3,7 +3,7 @@ load("@rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "machine",
     srcs = ["machine.go"],
-    importpath = "rules_vmtest/machine",
+    importpath = "github.com/mikn/rules_vmtest/machine",
     visibility = ["//visibility:public"],
     deps = ["@rules_vmtest//vm"],
 )

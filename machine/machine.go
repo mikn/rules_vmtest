@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"rules_vmtest/vm"
+	"github.com/mikn/rules_vmtest/vm"
 )
 
 // Default retry settings for polling operations.

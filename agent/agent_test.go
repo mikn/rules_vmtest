@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"rules_vmtest/agentpb"
+	"github.com/mikn/rules_vmtest/agentpb"
 )
 
 func setupTestAgent(t *testing.T) *rpc.Client {

@@ -10,7 +10,7 @@ import (
 	"syscall"
 
 	"github.com/bazelbuild/rules_go/go/runfiles"
-	"rules_vmtest/runner"
+	"github.com/mikn/rules_vmtest/runner"
 )
 
 // Build-time variables set via x_defs

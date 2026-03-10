@@ -1,18 +1,34 @@
 module(
     name = "rules_vmtest",
     version = "0.1.0",
+    compatibility_level = 0,
 )
 
+# --- Runtime dependencies (needed by consumers) ---
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "bazel_skylib", version = "1.8.1")
-bazel_dep(name = "rules_go", version = "0.57.0")
-bazel_dep(name = "gazelle", version = "0.44.0")
+bazel_dep(name = "bazel_skylib", version = "1.9.0")
+bazel_dep(name = "rules_go", version = "0.60.0")
 bazel_dep(name = "rules_qemu", version = "0.1.0")
 bazel_dep(name = "rules_linux", version = "0.1.0")
-bazel_dep(name = "rules_pkg", version = "1.1.0")
-bazel_dep(name = "aspect_bazel_lib", version = "2.19.2")
+bazel_dep(name = "rules_pkg", version = "1.2.0")
+bazel_dep(name = "aspect_bazel_lib", version = "2.22.5")
 
-# Test toolchains — only registered when rules_vmtest is the root module
+# --- Dev dependencies (only active when rules_vmtest is the root module) ---
+bazel_dep(name = "gazelle", version = "0.47.0", dev_dependency = True)
+bazel_dep(name = "rules_shell", version = "0.4.0", dev_dependency = True)
+
+# Local sibling overrides — will be replaced with BCR registry refs
+local_path_override(
+    module_name = "rules_linux",
+    path = "../rules_linux",
+)
+
+local_path_override(
+    module_name = "rules_qemu",
+    path = "../rules_qemu",
+)
+
+# Test toolchains
 register_toolchains(
     "//tests:mock_qemu_toolchain",
     "//tests:mock_swtpm_toolchain",
@@ -20,10 +36,8 @@ register_toolchains(
     dev_dependency = True,
 )
 
-# --- E2E test dependencies (dev only) ---
-
-# LLVM toolchain for kernel_build
-bazel_dep(name = "toolchains_llvm", version = "1.4.0", dev_dependency = True)
+# LLVM toolchain for kernel_build E2E tests
+bazel_dep(name = "toolchains_llvm", version = "1.6.0", dev_dependency = True)
 
 llvm = use_extension(
     "@toolchains_llvm//toolchain/extensions:llvm.bzl",

@@ -15,7 +15,7 @@ go_library(
         "tpm.go",
         "vm.go",
     ],
-    importpath = "rules_vmtest/vm",
+    importpath = "github.com/mikn/rules_vmtest/vm",
     visibility = ["//visibility:public"],
     deps = ["@rules_vmtest//agentpb"],
 )

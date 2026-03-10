@@ -1,7 +1,5 @@
-module rules_vmtest
+module github.com/mikn/rules_vmtest
 
-go 1.24.0
+go 1.26.0
 
-toolchain go1.24.7
-
-require github.com/bazelbuild/rules_go v0.57.0
+require github.com/bazelbuild/rules_go v0.60.0

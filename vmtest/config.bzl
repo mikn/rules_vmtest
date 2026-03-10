@@ -101,7 +101,7 @@ import (
 \t"testing"
 
 \t"github.com/bazelbuild/rules_go/go/runfiles"
-\t"rules_vmtest/machine"
+\t"github.com/mikn/rules_vmtest/machine"
 )
 
 func init() {{

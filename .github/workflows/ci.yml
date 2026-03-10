@@ -1,0 +1,40 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: rules_vmtest
+
+      # rules_vmtest depends on sibling modules via local_path_override
+      - uses: actions/checkout@v4
+        with:
+          repository: mikn/rules_linux
+          path: rules_linux
+
+      - uses: actions/checkout@v4
+        with:
+          repository: mikn/rules_qemu
+          path: rules_qemu
+
+      - name: Mount Bazel cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/bazel
+          key: bazel-${{ runner.os }}-${{ hashFiles('rules_vmtest/MODULE.bazel', 'rules_vmtest/MODULE.bazel.lock') }}
+          restore-keys: bazel-${{ runner.os }}-
+
+      - name: Build
+        working-directory: rules_vmtest
+        run: bazel build //...
+
+      - name: Test
+        working-directory: rules_vmtest
+        run: bazel test //...

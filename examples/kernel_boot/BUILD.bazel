@@ -6,7 +6,7 @@ load("@rules_vmtest//vmtest:config.bzl", "vmtest_config")
 # as a regular dep — no wrapper script needed.
 vmtest_config(
     name = "vmconfig",
-    importpath = "rules_vmtest/examples/kernel_boot/vmconfig",
+    importpath = "github.com/mikn/rules_vmtest/examples/kernel_boot/vmconfig",
     # --- Replace these with your own targets ---
     # kernel = "//your/kernel:vmlinuz",
     # initrd = "//your/rootfs:initrd",
@@ -23,6 +23,7 @@ go_test(
     deps = [":vmconfig"],
     tags = [
         "exclusive",
+        "manual",
         "no-sandbox",
         "requires-kvm",
     ],

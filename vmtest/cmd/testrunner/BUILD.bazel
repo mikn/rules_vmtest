@@ -3,7 +3,7 @@ load("@rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "testrunner_lib",
     srcs = ["main.go"],
-    importpath = "rules_vmtest/vmtest/cmd/testrunner",
+    importpath = "github.com/mikn/rules_vmtest/vmtest/cmd/testrunner",
     visibility = ["//visibility:private"],
     deps = ["@rules_vmtest//vm"],
 )

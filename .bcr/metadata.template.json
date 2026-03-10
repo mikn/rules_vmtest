@@ -1,0 +1,15 @@
+{
+  "homepage": "https://github.com/mikn/rules_vmtest",
+  "maintainers": [
+    {
+      "email": "mikael.knutsson@gmail.com",
+      "github": "mikn",
+      "name": "Mikael Knutsson"
+    }
+  ],
+  "repository": [
+    "github:mikn/rules_vmtest"
+  ],
+  "versions": [],
+  "yanked_versions": {}
+}

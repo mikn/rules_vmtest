@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"rules_vmtest/agentpb"
+	"github.com/mikn/rules_vmtest/agentpb"
 )
 
 var (

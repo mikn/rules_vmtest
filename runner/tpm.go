@@ -3,7 +3,7 @@ package runner
 import (
 	"fmt"
 
-	"rules_vmtest/vm"
+	"github.com/mikn/rules_vmtest/vm"
 )
 
 func (r *Runner) initializeTPMState(tpmDir string) error {

@@ -11,7 +11,7 @@ go_library(
         "tpm.go",
         "utils.go",
     ],
-    importpath = "rules_vmtest/runner",
+    importpath = "github.com/mikn/rules_vmtest/runner",
     visibility = ["//visibility:public"],
     deps = ["@rules_vmtest//vm"],
 )

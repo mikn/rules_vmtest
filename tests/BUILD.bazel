@@ -1,4 +1,5 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@rules_qemu//qemu:toolchain.bzl", "qemu_toolchain")
 load("@rules_vmtest//vmtest:vm_go_test.bzl", "vm_go_test")
 load(":mock_toolchains.bzl", "mock_swtpm_toolchain")

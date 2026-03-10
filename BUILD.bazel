@@ -1,9 +1,9 @@
 load("@gazelle//:def.bzl", "gazelle")
 
-# gazelle:prefix rules_vmtest
-# gazelle:resolve go rules_vmtest/agentpb @rules_vmtest//agentpb
-# gazelle:resolve go rules_vmtest/machine @rules_vmtest//machine
-# gazelle:resolve go rules_vmtest/runner @rules_vmtest//runner
-# gazelle:resolve go rules_vmtest/vm @rules_vmtest//vm
+# gazelle:prefix github.com/mikn/rules_vmtest
+# gazelle:resolve go github.com/mikn/rules_vmtest/agentpb @rules_vmtest//agentpb
+# gazelle:resolve go github.com/mikn/rules_vmtest/machine @rules_vmtest//machine
+# gazelle:resolve go github.com/mikn/rules_vmtest/runner @rules_vmtest//runner
+# gazelle:resolve go github.com/mikn/rules_vmtest/vm @rules_vmtest//vm
 
 gazelle(name = "gazelle")

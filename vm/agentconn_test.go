@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"rules_vmtest/agentpb"
+	"github.com/mikn/rules_vmtest/agentpb"
 )
 
 // MockAgent implements the RPC service for testing.
