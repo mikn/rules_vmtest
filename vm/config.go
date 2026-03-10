@@ -27,6 +27,7 @@ type Config struct {
 	swtpm        string
 	swtpmSetup   string
 	tpmStatePath string
+	tpmPCRBanks  []string // PCR hash algorithms (default: ["sha256"])
 
 	// Networking
 	networkMode    networkMode
@@ -69,7 +70,6 @@ type Config struct {
 	resolvedDiskPath string
 	resolvedVarsPath string
 	tpmSocketPath    string
-	serialSocketPath string
 	qmpSocketPath    string
 }
 
@@ -155,6 +155,14 @@ func WithTPM(swtpm, swtpmSetup string) Option {
 // WithTPMState copies TPM state from a pristine path before starting.
 func WithTPMState(pristinePath string) Option {
 	return func(c *Config) { c.tpmStatePath = pristinePath }
+}
+
+// WithTPMBanks sets the PCR hash algorithms for the TPM.
+// Defaults to ["sha256"]. Using all 4 banks (sha1, sha256, sha384, sha512)
+// avoids a firmware reboot for PCR allocation but significantly increases
+// UEFI measurement time (~4x per boot component).
+func WithTPMBanks(banks ...string) Option {
+	return func(c *Config) { c.tpmPCRBanks = banks }
 }
 
 // WithUserNet enables user-mode networking (SLIRP).
@@ -279,6 +287,10 @@ func applyDefaults(c *Config) {
 	}
 	if c.name == "" {
 		c.name = "vmtest"
+	}
+
+	if len(c.tpmPCRBanks) == 0 {
+		c.tpmPCRBanks = []string{"sha256"}
 	}
 
 	// Detect SMM from machine string

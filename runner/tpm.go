@@ -7,7 +7,7 @@ import (
 )
 
 func (r *Runner) initializeTPMState(tpmDir string) error {
-	return vm.InitializeTPMState(r.config.ToolPaths.SwtpmSetup, tpmDir)
+	return vm.InitializeTPMState(r.config.ToolPaths.SwtpmSetup, tpmDir, []string{"sha256"})
 }
 
 func (r *Runner) startTPMWithDir(tpmDir string) (tpmSocket string, pidFile string, err error) {

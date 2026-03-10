@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -19,7 +20,7 @@ func (vm *VM) setupTPM() error {
 		pristineState := filepath.Join(vm.config.tpmStatePath, "tpm2-00.permall")
 		if !FileExists(pristineState) {
 			// Initialize pristine state first
-			if err := InitializeTPMState(vm.config.swtpmSetup, vm.config.tpmStatePath); err != nil {
+			if err := InitializeTPMState(vm.config.swtpmSetup, vm.config.tpmStatePath, vm.config.tpmPCRBanks); err != nil {
 				return fmt.Errorf("failed to create pristine TPM state: %w", err)
 			}
 		}
@@ -28,7 +29,7 @@ func (vm *VM) setupTPM() error {
 		}
 	} else {
 		// Fresh initialization
-		if err := InitializeTPMState(vm.config.swtpmSetup, tpmDir); err != nil {
+		if err := InitializeTPMState(vm.config.swtpmSetup, tpmDir, vm.config.tpmPCRBanks); err != nil {
 			return err
 		}
 	}
@@ -45,10 +46,10 @@ func (vm *VM) setupTPM() error {
 }
 
 // InitializeTPMState creates a fresh TPM state directory using swtpm_setup.
-// Pre-allocates all 4 PCR banks (sha1,sha256,sha384,sha512) to match what OVMF
-// expects. Without this, OVMF detects a bank mismatch, calls TPM2_PCR_Allocate,
-// and reboots the firmware — adding an entire extra boot cycle.
-func InitializeTPMState(swtpmSetup, tpmDir string) error {
+// The pcrBanks parameter specifies which hash algorithms to pre-allocate
+// (e.g., []string{"sha256"} or []string{"sha1", "sha256", "sha384", "sha512"}).
+// Using fewer banks significantly reduces UEFI measurement time during firmware boot.
+func InitializeTPMState(swtpmSetup, tpmDir string, pcrBanks []string) error {
 	if err := os.MkdirAll(tpmDir, 0700); err != nil {
 		return fmt.Errorf("failed to create TPM directory: %w", err)
 	}
@@ -61,7 +62,7 @@ func InitializeTPMState(swtpmSetup, tpmDir string) error {
 	cmd := exec.Command(swtpmSetup,
 		"--tpmstate", fmt.Sprintf("dir://%s", tpmDir),
 		"--tpm2",
-		"--pcr-banks", "sha1,sha256,sha384,sha512",
+		"--pcr-banks", strings.Join(pcrBanks, ","),
 		"--createek",
 		"--display",
 		"--decryption",

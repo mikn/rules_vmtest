@@ -15,9 +15,9 @@ func buildArgs(c *Config) []string {
 
 	args = appendDebugConsoleArgs(args, c)
 	args = appendBootOrderArgs(args, c)
-	// Firmware and storage come before network so that OVMF discovers boot
-	// devices on lower PCI addresses first, avoiding unnecessary PXE ROM
-	// loading and TPM measurement overhead for NICs.
+	// Firmware and storage before network/TPM: OVMF discovers boot devices
+	// at lower PCI addresses first, reducing TPM measurement overhead since
+	// fewer devices need measuring before the boot device is found.
 	args = appendFirmwareArgs(args, c)
 	args = appendStorageArgs(args, c)
 	args = appendTPMArgs(args, c)
@@ -68,7 +68,7 @@ func appendNetworkArgs(args []string, c *Config) []string {
 			netdev2 := fmt.Sprintf("tap,id=net1,ifname=%s,script=no,downscript=no", c.secondTap)
 			args = append(args,
 				"-netdev", netdev2,
-				"-device", "virtio-net-pci,netdev=net1,addr=0x6",
+				"-device", "virtio-net-pci,netdev=net1,addr=0x6,romfile=",
 			)
 		}
 	case networkNone:
@@ -78,7 +78,9 @@ func appendNetworkArgs(args []string, c *Config) []string {
 }
 
 func primaryNetDevice(c *Config) string {
-	dev := "virtio-net-pci,netdev=net0"
+	// romfile= disables PXE option ROM — without this, OVMF loads the iPXE ROM
+	// for every NIC during firmware init and waits for DHCP timeouts (~60-90s each).
+	dev := "virtio-net-pci,netdev=net0,romfile="
 	if c.macAddress != "" {
 		dev += fmt.Sprintf(",mac=%s", c.macAddress)
 	}
