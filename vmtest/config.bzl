@@ -78,6 +78,12 @@ def _vmtest_config_impl(ctx):
             rlocation_setenvs.append(("VMTEST_SWTPM_SETUP", _to_rlocationpath(ctx, swtpm_setup_exe)))
             data_files.append(swtpm_setup_exe)
 
+    # Machine type and accelerator from toolchain
+    if qemu_info.machine_type:
+        literal_setenvs.append(("VMTEST_MACHINE_TYPE", qemu_info.machine_type))
+    if qemu_info.accel:
+        literal_setenvs.append(("VMTEST_ACCEL", qemu_info.accel))
+
     # Network
     literal_setenvs.append(("VMTEST_NETWORK", ctx.attr.network))
     if ctx.attr.network == "bridge":
@@ -89,7 +95,7 @@ def _vmtest_config_impl(ctx):
         init_lines.append("\tr, err := runfiles.New()")
         init_lines.append('\tif err != nil { panic("vmtest: " + err.Error()) }')
         for env_var, rlocation_path in rlocation_setenvs:
-            init_lines.append('\tmustSetenv(r, "%s", "%s")' % (env_var, rlocation_path))
+            init_lines.append('\tvmtestMustSetenv(r, "%s", "%s")' % (env_var, rlocation_path))
     for env_var, value in literal_setenvs:
         init_lines.append('\tos.Setenv("%s", "%s")' % (env_var, value))
 
@@ -108,7 +114,7 @@ func init() {{
 {init_body}
 }}
 
-func mustSetenv(r *runfiles.Runfiles, key, rlocationPath string) {{
+func vmtestMustSetenv(r *runfiles.Runfiles, key, rlocationPath string) {{
 \tp, err := r.Rlocation(rlocationPath)
 \tif err != nil {{ panic("vmtest: " + key + ": " + err.Error()) }}
 \tos.Setenv(key, p)

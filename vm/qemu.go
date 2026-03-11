@@ -1,13 +1,23 @@
 package vm
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // buildArgs constructs the QEMU command-line arguments from the resolved config.
 func buildArgs(c *Config) []string {
+	// Use "max" for TCG to enable all emulated CPU features; "host" is only
+	// valid for hardware-assisted acceleration (KVM/HVF).
+	cpuModel := "host"
+	if c.accel == "tcg" || strings.Contains(c.machine, "accel=tcg") {
+		cpuModel = "max"
+	}
+
 	args := []string{
 		"-name", c.name,
 		"-machine", c.machine,
-		"-cpu", "host",
+		"-cpu", cpuModel,
 		"-m", c.memory,
 		"-smp", fmt.Sprintf("%d", c.cpus),
 		"-device", "virtio-rng-pci",

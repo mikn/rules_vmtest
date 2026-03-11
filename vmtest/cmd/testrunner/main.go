@@ -27,12 +27,14 @@ func main() {
 		tpm       = flag.Bool("tpm", false, "Enable TPM")
 		swtpm     = flag.String("swtpm", "swtpm", "Path to swtpm binary")
 		swtpmSetup = flag.String("swtpm-setup", "swtpm_setup", "Path to swtpm_setup binary")
-		network   = flag.String("network", "user", "Network mode: user, none")
-		timeout   = flag.Int("timeout", 10, "Timeout in minutes")
-		shareDir  = flag.String("share-dir", "", "Path to 9P share directory")
-		qemuBin   = flag.String("qemu", "qemu-system-x86_64", "Path to QEMU binary")
-		qemuImg   = flag.String("qemu-img", "qemu-img", "Path to qemu-img binary")
-		workDir   = flag.String("work-dir", "", "Work directory (temp if empty)")
+		network     = flag.String("network", "user", "Network mode: user, none")
+		timeout     = flag.Int("timeout", 10, "Timeout in minutes")
+		shareDir    = flag.String("share-dir", "", "Path to 9P share directory")
+		qemuBin     = flag.String("qemu", "", "Path to QEMU binary (defaults to qemu-system-aarch64 on ARM64, qemu-system-x86_64 otherwise)")
+		qemuImg     = flag.String("qemu-img", "qemu-img", "Path to qemu-img binary")
+		machineType = flag.String("machine-type", "", "QEMU machine type base (e.g., q35, virt). Combined with --accel.")
+		accel       = flag.String("accel", "", "QEMU accelerator (e.g., kvm, hvf, tcg). Combined with --machine-type.")
+		workDir     = flag.String("work-dir", "", "Work directory (temp if empty)")
 	)
 	flag.Parse()
 
@@ -50,10 +52,19 @@ func main() {
 	opts := []vm.Option{
 		vm.WithMemory(*memory),
 		vm.WithCPUs(*cpus),
-		vm.WithQemuBinary(*qemuBin),
 		vm.WithQemuImg(*qemuImg),
 		vm.WithName("vmtest"),
 		vm.WithSerialCapture(),
+	}
+	if *qemuBin != "" {
+		opts = append(opts, vm.WithQemuBinary(*qemuBin))
+	}
+
+	if *machineType != "" {
+		opts = append(opts, vm.WithMachineType(*machineType))
+	}
+	if *accel != "" {
+		opts = append(opts, vm.WithAccel(*accel))
 	}
 
 	if *workDir != "" {

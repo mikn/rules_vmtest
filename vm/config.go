@@ -1,14 +1,19 @@
 package vm
 
-import "strings"
+import (
+	"runtime"
+	"strings"
+)
 
 // Config holds the resolved configuration for a VM instance.
 // Use functional Option values with Start() to build this.
 type Config struct {
 	// VM resources
-	memory  string
-	cpus    int
-	machine string
+	memory      string
+	cpus        int
+	machine     string // Full machine string (e.g., "q35,accel=kvm"). Set by WithMachine.
+	machineType string // Machine type base (e.g., "q35", "virt"). Set by WithMachineType.
+	accel       string // Accelerator (e.g., "kvm", "hvf", "tcg"). Set by WithAccel.
 
 	// Boot configuration (mutually exclusive modes)
 	kernel  string
@@ -107,9 +112,24 @@ func WithCPUs(n int) Option {
 	return func(c *Config) { c.cpus = n }
 }
 
-// WithMachine sets the QEMU machine type (e.g., "q35,accel=kvm").
+// WithMachine sets the full QEMU machine string (e.g., "q35,accel=kvm").
+// If only the machine type is needed, use WithMachineType and WithAccel instead.
 func WithMachine(machine string) Option {
 	return func(c *Config) { c.machine = machine }
+}
+
+// WithMachineType sets the QEMU machine type base (e.g., "q35", "virt").
+// Combined with WithAccel (or the default accelerator) to form the full machine string.
+// Ignored if WithMachine is also called.
+func WithMachineType(machineType string) Option {
+	return func(c *Config) { c.machineType = machineType }
+}
+
+// WithAccel sets the QEMU accelerator (e.g., "kvm", "hvf", "tcg").
+// Combined with the machine type to form the full machine string.
+// Ignored if WithMachine is also called.
+func WithAccel(accel string) Option {
+	return func(c *Config) { c.accel = accel }
 }
 
 // WithKernelBoot configures direct kernel boot.
@@ -276,11 +296,38 @@ func applyDefaults(c *Config) {
 	if c.cpus == 0 {
 		c.cpus = 2
 	}
+
+	// Build the machine string from parts if not set as a full string.
+	// WithMachine wins; otherwise compose from machineType + accel.
 	if c.machine == "" {
-		c.machine = "q35,accel=kvm"
+		// Determine machine type base
+		if c.machineType == "" {
+			if runtime.GOARCH == "arm64" {
+				c.machineType = "virt"
+			} else {
+				c.machineType = "q35"
+			}
+		}
+		// Determine accelerator
+		if c.accel == "" {
+			switch runtime.GOOS {
+			case "darwin":
+				c.accel = "hvf"
+			default:
+				c.accel = "kvm"
+			}
+		}
+		c.machine = c.machineType + ",accel=" + c.accel
 	}
+
 	if c.qemuBinary == "" {
-		c.qemuBinary = "qemu-system-x86_64"
+		// Default based on host arch for non-Bazel usage.
+		// Bazel rules set VMTEST_QEMU from the toolchain.
+		if runtime.GOARCH == "arm64" {
+			c.qemuBinary = "qemu-system-aarch64"
+		} else {
+			c.qemuBinary = "qemu-system-x86_64"
+		}
 	}
 	if c.qemuImg == "" {
 		c.qemuImg = "qemu-img"

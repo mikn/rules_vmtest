@@ -68,6 +68,12 @@ def _vm_go_test_impl(ctx):
             env_lines.append('export VMTEST_SWTPM_SETUP="{}"'.format(swtpm_setup_exe.short_path))
             runfiles_files.append(swtpm_setup_exe)
 
+    # Machine type and accelerator from toolchain
+    if qemu_info.machine_type:
+        env_lines.append('export VMTEST_MACHINE_TYPE="{}"'.format(qemu_info.machine_type))
+    if qemu_info.accel:
+        env_lines.append('export VMTEST_ACCEL="{}"'.format(qemu_info.accel))
+
     # Network
     env_lines.append('export VMTEST_NETWORK="{}"'.format(ctx.attr.network))
     if ctx.attr.network == "bridge":

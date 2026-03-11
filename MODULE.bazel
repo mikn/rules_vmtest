@@ -64,7 +64,7 @@ kernel_sources.source(
 )
 use_repo(kernel_sources, "vmtest_kernel_source")
 
-# Static busybox binary for E2E test rootfs
+# Static busybox binaries for E2E test rootfs (x86_64 and aarch64)
 test_artifacts = use_extension(
     "@rules_linux//linux:extensions.bzl",
     "test_artifacts",

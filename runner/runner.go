@@ -19,6 +19,11 @@ type RunnerConfig struct {
 	// Tool paths
 	ToolPaths ToolPaths
 
+	// VM hardware
+	// MachineType is the full QEMU -machine argument (e.g., "q35,accel=kvm,smm=on").
+	// Defaults to "q35,accel=kvm,smm=on" on Linux x86_64 for backward compatibility.
+	MachineType string
+
 	// Network configuration
 	TapDevice       string
 	SecondTapDevice string
@@ -69,7 +74,7 @@ func NewRunner(config *RunnerConfig) *Runner {
 	}
 	tp := &config.ToolPaths
 	if tp.QemuSystem == "" {
-		tp.QemuSystem = "qemu-system-x86_64"
+		tp.QemuSystem = DefaultToolPaths().QemuSystem
 	}
 	if tp.QemuImg == "" {
 		tp.QemuImg = "qemu-img"

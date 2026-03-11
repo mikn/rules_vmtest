@@ -334,6 +334,12 @@ func buildVMOptsFromEnv(t testing.TB) []vm.Option {
 	if v := os.Getenv("VMTEST_QEMU_IMG"); v != "" {
 		opts = append(opts, vm.WithQemuImg(v))
 	}
+	if v := os.Getenv("VMTEST_MACHINE_TYPE"); v != "" {
+		opts = append(opts, vm.WithMachineType(v))
+	}
+	if v := os.Getenv("VMTEST_ACCEL"); v != "" {
+		opts = append(opts, vm.WithAccel(v))
+	}
 
 	kernel := os.Getenv("VMTEST_KERNEL")
 	initrd := os.Getenv("VMTEST_INITRD")

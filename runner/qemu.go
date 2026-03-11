@@ -2,7 +2,30 @@ package runner
 
 import (
 	"fmt"
+	"runtime"
+	"strings"
 )
+
+// defaultMachineType returns the machine string for the runner package.
+// Includes smm=on for UEFI Secure Boot support (required by bulldozer).
+// The vm package has its own defaults without smm=on — callers needing
+// Secure Boot should use vm.WithMachine("q35,accel=kvm,smm=on") explicitly.
+// Uses host-aware defaults for non-Bazel usage; Bazel rules set MachineType
+// explicitly from the toolchain.
+func defaultMachineType() string {
+	switch runtime.GOOS {
+	case "darwin":
+		if runtime.GOARCH == "arm64" {
+			return "virt,accel=hvf"
+		}
+		return "q35,accel=hvf"
+	default: // linux
+		if runtime.GOARCH == "arm64" {
+			return "virt,accel=kvm"
+		}
+		return "q35,accel=kvm,smm=on"
+	}
+}
 
 // buildQEMUArgs constructs the QEMU command arguments
 func (r *Runner) buildQEMUArgs(ovmfCode, varsPath, diskPath, isoPath, tpmSocket string, bootFromISO bool, tapName, secondTapName string, directMode bool) []string {
@@ -16,10 +39,22 @@ func (r *Runner) buildQEMUArgs(ovmfCode, varsPath, diskPath, isoPath, tpmSocket 
 		cpus = 2
 	}
 
+	machineType := r.config.MachineType
+	if machineType == "" {
+		machineType = defaultMachineType()
+	}
+
+	// Use "max" for TCG to enable all emulated CPU features; "host" is only
+	// valid for hardware-assisted acceleration (KVM/HVF).
+	cpuModel := "host"
+	if strings.Contains(machineType, "accel=tcg") {
+		cpuModel = "max"
+	}
+
 	args := []string{
 		"-name", r.config.ServerName,
-		"-machine", "q35,accel=kvm,smm=on",
-		"-cpu", "host",
+		"-machine", machineType,
+		"-cpu", cpuModel,
 		"-m", memory,
 		"-smp", fmt.Sprintf("%d", cpus),
 		"-device", "virtio-rng-pci",

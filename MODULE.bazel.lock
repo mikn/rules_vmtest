@@ -406,6 +406,37 @@
         }
       }
     },
+    "@@rules_linux+//linux:extensions.bzl%test_artifacts": {
+      "general": {
+        "bzlTransitiveDigest": "jNR2UlY6cBZ0EhC55G+SWvTZPqpBB0MNvrT58QHNK3E=",
+        "usagesDigest": "3TTSw3gvTZCcbDG5bt6SS8br6QMTPMWfZZPJz6UIBjQ=",
+        "recordedInputs": [],
+        "generatedRepoSpecs": {
+          "test_busybox": {
+            "repoRuleId": "@@rules_linux+//linux:extensions.bzl%_http_file_repo",
+            "attributes": {
+              "urls": [
+                "https://busybox.net/downloads/binaries/1.35.0-x86_64-linux-musl/busybox"
+              ],
+              "sha256": "6e123e7f3202a8c1e9b1f94d8941580a25135382b99e8d3e34fb858bba311348",
+              "downloaded_file_name": "busybox",
+              "executable": true
+            }
+          },
+          "test_busybox_aarch64": {
+            "repoRuleId": "@@rules_linux+//linux:extensions.bzl%_http_file_repo",
+            "attributes": {
+              "urls": [
+                "https://busybox.net/downloads/binaries/1.35.0-aarch64-linux-musl/busybox"
+              ],
+              "sha256": "dfbe4a8c97da8aabe6f7ded5e4f244f69c9e81a07e73bbed56bc71e1c4d1daf9",
+              "downloaded_file_name": "busybox",
+              "executable": true
+            }
+          }
+        }
+      }
+    },
     "@@rules_m4+//m4/internal:default_toolchain_ext.bzl%default_toolchain_ext": {
       "general": {
         "bzlTransitiveDigest": "lutcxv4anQNSfdgP1epFeQD6ke2SiWQg+gC8FByWp8o=",

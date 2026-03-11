@@ -69,6 +69,12 @@ def _vm_test_impl(ctx):
             args.extend(["--swtpm-setup", swtpm_setup_exe.short_path])
             runfiles_files.append(swtpm_setup_exe)
 
+    # Machine type and accelerator from toolchain
+    if qemu_info.machine_type:
+        args.extend(["--machine-type", qemu_info.machine_type])
+    if qemu_info.accel:
+        args.extend(["--accel", qemu_info.accel])
+
     # Network
     args.extend(["--network", ctx.attr.network])
 
