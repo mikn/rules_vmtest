@@ -15,7 +15,7 @@ bazel_dep(name = "aspect_bazel_lib", version = "2.22.5")
 
 # --- Dev dependencies (only active when rules_vmtest is the root module) ---
 bazel_dep(name = "gazelle", version = "0.47.0", dev_dependency = True)
-bazel_dep(name = "rules_shell", version = "0.4.0", dev_dependency = True)
+bazel_dep(name = "rules_shell", version = "0.6.1", dev_dependency = True)
 
 # Local sibling overrides — will be replaced with BCR registry refs
 local_path_override(
@@ -59,8 +59,8 @@ kernel_sources = use_extension(
 )
 kernel_sources.source(
     name = "vmtest_kernel_source",
-    sha256 = "f3ebdeea9e555b4cface44e29670056f4024541e6bd222fbcf776c818974fbba",
-    version = "6.12.13",
+    sha256 = "bbb43e834c46e6bd49a5c28f22e679a937443404e1f653204d4b24929f3ad896",
+    version = "6.12.76",
 )
 use_repo(kernel_sources, "vmtest_kernel_source")
 
