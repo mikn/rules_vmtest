@@ -1,9 +1,9 @@
 load("@gazelle//:def.bzl", "gazelle")
 
 # gazelle:prefix github.com/mikn/rules_vmtest
-# gazelle:resolve go github.com/mikn/rules_vmtest/agentpb @rules_vmtest//agentpb
 # gazelle:resolve go github.com/mikn/rules_vmtest/machine @rules_vmtest//machine
 # gazelle:resolve go github.com/mikn/rules_vmtest/runner @rules_vmtest//runner
-# gazelle:resolve go github.com/mikn/rules_vmtest/vm @rules_vmtest//vm
+# gazelle:resolve go github.com/mikn/rules_qemu/vm @rules_qemu//vm
+# gazelle:resolve go github.com/mikn/rules_qemu/agentpb @rules_qemu//agentpb
 
 gazelle(name = "gazelle")

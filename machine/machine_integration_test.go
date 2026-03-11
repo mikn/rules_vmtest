@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mikn/rules_vmtest/agentpb"
-	"github.com/mikn/rules_vmtest/vm"
+	"github.com/mikn/rules_qemu/agentpb"
+	"github.com/mikn/rules_qemu/vm"
 )
 
 // testAgent is a configurable mock agent for testing Machine methods

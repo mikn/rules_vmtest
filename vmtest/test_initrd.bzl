@@ -17,7 +17,7 @@ def test_initrd(name, rootfs, strip_profile = None, **kwargs):
     """
     pkg_tar(
         name = name + "_with_agent",
-        deps = [rootfs, "@rules_vmtest//agent:agent_tar"],
+        deps = [rootfs, "@rules_qemu//agent:agent_tar"],
     )
 
     initrd(

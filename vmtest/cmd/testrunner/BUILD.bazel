@@ -5,7 +5,7 @@ go_library(
     srcs = ["main.go"],
     importpath = "github.com/mikn/rules_vmtest/vmtest/cmd/testrunner",
     visibility = ["//visibility:private"],
-    deps = ["@rules_vmtest//vm"],
+    deps = ["@rules_qemu//vm"],
 )
 
 go_binary(

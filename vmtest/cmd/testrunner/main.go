@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/mikn/rules_vmtest/vm"
+	"github.com/mikn/rules_qemu/vm"
 )
 
 func main() {

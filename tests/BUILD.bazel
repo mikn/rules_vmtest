@@ -136,11 +136,11 @@ runfiles_test(
 build_test(
     name = "go_artifacts_build_test",
     targets = [
-        "@rules_vmtest//agent",
-        "@rules_vmtest//agent:agent_tar",
-        "@rules_vmtest//agentpb",
+        "@rules_qemu//agent",
+        "@rules_qemu//agent:agent_tar",
+        "@rules_qemu//agentpb",
         "@rules_vmtest//machine",
-        "@rules_vmtest//vm",
+        "@rules_qemu//vm",
     ],
 )
 

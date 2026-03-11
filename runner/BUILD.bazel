@@ -13,5 +13,5 @@ go_library(
     ],
     importpath = "github.com/mikn/rules_vmtest/runner",
     visibility = ["//visibility:public"],
-    deps = ["@rules_vmtest//vm"],
+    deps = ["@rules_qemu//vm"],
 )

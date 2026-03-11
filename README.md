@@ -157,12 +157,12 @@ pkg_tar(
     name = "rootfs_with_agent",
     deps = [
         ":my_rootfs",
-        "@rules_vmtest//agent:agent_tar",
+        "@rules_qemu//agent:agent_tar",
     ],
 )
 ```
 
-The included systemd unit has `ConditionPathExists=/dev/virtio-ports/org.vmtest.agent`, so the agent only starts when running under vmtest.
+The included systemd unit has `ConditionVirtualization=vm`, so the agent only starts when running inside a virtual machine.
 
 For auto-injection into initrds, use the `test_initrd` macro:
 
