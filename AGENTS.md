@@ -43,6 +43,44 @@ bazel run //:gazelle                # Regenerate BUILD files after Go changes
 - **Serial safety**: Goroutines consuming serial output must be properly synchronized with test cleanup. See `OnLine()` return channel pattern.
 - **No shell parsing**: Use structured RPC for guest commands. `WaitForUnit` calls `Agent.UnitStatus` directly, not `systemctl | grep`.
 
+## Pitfalls & Learnings
+
+### Machine primitives
+
+- **`Machine.Background()`**: Uses `Agent.Background` RPC → `systemd-run --no-block --collect --` with argv (no shell). For shell commands in background: `m.Background(t, "bash", "-c", "cmd1 && cmd2")`.
+- **E2E vmtest performance**: Uses `//build/linux/base:base_rootfs` (Debian Bookworm + systemd) + Debian kernel from `@usi_base`. Boots in ~2s with systemd, all 11 machine primitives pass in ~5s.
+
+### vmtest Starlark macros
+
+- **`test_initrd`**: Auto-injects agent into rootfs by merging agent_tar with the user's rootfs tar, then creating a cpio initrd. The agent tar must contain the agent binary and its systemd service file.
+- **`vmtest_config`**: Generates a `go_library` that calls `runfiles.Rlocation()` for kernel and initrd paths. The generated init() function sets environment variables that `machine.New(t)` reads. This is the glue between Bazel runfiles and Go test code.
+- **`vm_go_test`**: Wraps `go_test` with VM-specific attributes (kernel, initrd, cpus, memory, cmdline). The test binary runs on the host and communicates with the VM via the agent.
+
+### Agent RPC
+
+- **Guest DNS**: VMs may have no DNS resolver. The agent's `resolveAddr()` maps `"localhost"` → `"127.0.0.1"` to avoid lookups that would hang.
+- **Go os/exec pipe gotcha**: `cmd.Run()` blocks until ALL inherited fds close (including backgrounded processes). The `Background` RPC uses `systemd-run` to fully detach processes.
+
+### Serial console
+
+- **Lines may be dropped**: Both `lines` and `logChan` use non-blocking sends. If the consumer is slow, lines are dropped.
+- **Cleanup order matters**: `Kill()` → `serial.Close()` → `serial.Wait()` → OnLine goroutine drains. Wrong order causes `t.Logf` data races.
+
+### VM lifecycle
+
+- **Unix socket path limit**: 108 bytes max for `sun_path`. Bazel sandbox paths easily exceed this. Always use `/tmp` for QEMU monitor and agent sockets.
+- **9P symlinks are dangling**: Symlinks to host absolute paths don't resolve inside the guest. Copy files into the shared directory.
+- **virtio-serial without udev**: Scan `/sys/class/virtio-ports/vport*/name` and create `/dev/virtio-ports/` symlinks manually.
+
+### Monorepo integration
+
+- **Bulldozer integration test**: `runner_lib` has OVMF `x_defs` baked in at `go_library` level (not `go_test`). The new `vm` package resolves OVMF from runfiles explicitly.
+- **`STRIP_PROFILE_SERVER`**: Strips perl, python from initrds. Available tools: bash, coreutils, util-linux, systemd, udev.
+
+## Self-Correction Protocol
+
+When you receive a correction from the user about rules_vmtest patterns, machine primitives, agent behavior, or VM lifecycle, update the "Pitfalls & Learnings" section of this file to capture the correction. This prevents repeating the same mistakes across conversations.
+
 ## Releasing
 
 See [RELEASING.md](RELEASING.md). Tag push → GitHub release → `publish-to-bcr` reusable workflow auto-opens BCR PR. Depends on `rules_qemu` and `rules_linux` — publish those first.
