@@ -1,5 +1,7 @@
 """vm_go_test rule: boot a VM with agent, run Go tests against it."""
 
+load("@rules_linux//linux:providers.bzl", "LinuxKernelInfo")
+
 _QEMU_TOOLCHAIN_TYPE = "@rules_qemu//qemu:toolchain_type"
 _SWTPM_TOOLCHAIN_TYPE = "@rules_qemu//qemu:swtpm_type"
 _SWTPM_SETUP_TOOLCHAIN_TYPE = "@rules_qemu//qemu:swtpm_setup_type"
@@ -20,9 +22,10 @@ def _vm_go_test_impl(ctx):
         runfiles_files.append(qemu_info.qemu_img)
 
     # Boot configuration
-    if ctx.file.kernel:
-        env_lines.append('export VMTEST_KERNEL="{}"'.format(ctx.file.kernel.short_path))
-        runfiles_files.append(ctx.file.kernel)
+    if ctx.attr.kernel:
+        kernel_vmlinuz = ctx.attr.kernel[LinuxKernelInfo].vmlinuz
+        env_lines.append('export VMTEST_KERNEL="{}"'.format(kernel_vmlinuz.short_path))
+        runfiles_files.append(kernel_vmlinuz)
     if ctx.file.initrd:
         env_lines.append('export VMTEST_INITRD="{}"'.format(ctx.file.initrd.short_path))
         runfiles_files.append(ctx.file.initrd)
@@ -33,8 +36,8 @@ def _vm_go_test_impl(ctx):
         runfiles_files.append(ctx.file.iso)
 
     # UEFI firmware: explicit attrs always used; toolchain defaults only for non-kernel boot
-    ovmf_code = ctx.file.ovmf_code if ctx.file.ovmf_code else (qemu_info.ovmf_code if not ctx.file.kernel else None)
-    ovmf_vars = ctx.file.ovmf_vars if ctx.file.ovmf_vars else (qemu_info.ovmf_vars if not ctx.file.kernel else None)
+    ovmf_code = ctx.file.ovmf_code if ctx.file.ovmf_code else (qemu_info.ovmf_code if not ctx.attr.kernel else None)
+    ovmf_vars = ctx.file.ovmf_vars if ctx.file.ovmf_vars else (qemu_info.ovmf_vars if not ctx.attr.kernel else None)
 
     if ovmf_code:
         env_lines.append('export VMTEST_OVMF_CODE="{}"'.format(ovmf_code.short_path))
@@ -123,8 +126,8 @@ vm_go_test = rule(
             doc = "Go test binary to run (a go_test target)",
         ),
         "kernel": attr.label(
-            allow_single_file = True,
-            doc = "Kernel image for direct boot",
+            providers = [LinuxKernelInfo],
+            doc = "Kernel image for direct boot (must provide LinuxKernelInfo)",
         ),
         "initrd": attr.label(
             allow_single_file = True,
