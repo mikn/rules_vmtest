@@ -1,5 +1,7 @@
 """vm_test rule: boot a VM, run a test, determine pass/fail."""
 
+load("@rules_linux//linux:providers.bzl", "LinuxKernelInfo")
+
 _QEMU_TOOLCHAIN_TYPE = "@rules_qemu//qemu:toolchain_type"
 _SWTPM_TOOLCHAIN_TYPE = "@rules_qemu//qemu:swtpm_type"
 _SWTPM_SETUP_TOOLCHAIN_TYPE = "@rules_qemu//qemu:swtpm_setup_type"
@@ -20,9 +22,10 @@ def _vm_test_impl(ctx):
         runfiles_files.append(qemu_info.qemu_img)
 
     # Boot configuration
-    if ctx.file.kernel:
-        args.extend(["--kernel", ctx.file.kernel.short_path])
-        runfiles_files.append(ctx.file.kernel)
+    if ctx.attr.kernel:
+        kernel_vmlinuz = ctx.attr.kernel[LinuxKernelInfo].vmlinuz
+        args.extend(["--kernel", kernel_vmlinuz.short_path])
+        runfiles_files.append(kernel_vmlinuz)
     if ctx.file.initrd:
         args.extend(["--initrd", ctx.file.initrd.short_path])
         runfiles_files.append(ctx.file.initrd)
@@ -154,8 +157,8 @@ vm_test = rule(
     test = True,
     attrs = {
         "kernel": attr.label(
-            allow_single_file = True,
-            doc = "Kernel image for direct boot",
+            providers = [LinuxKernelInfo],
+            doc = "Kernel image for direct boot (must provide LinuxKernelInfo)",
         ),
         "initrd": attr.label(
             allow_single_file = True,

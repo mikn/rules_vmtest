@@ -7,6 +7,7 @@ load(
     ":vm_go_test_analysis.bzl",
     "basic_env_vars_test",
     "bridge_network_test",
+    "port_forwards_test",
     "runfiles_test",
     "tpm_env_vars_test",
 )
@@ -109,7 +110,20 @@ vm_go_test(
     tpm = True,
 )
 
+vm_go_test(
+    name = "port_forwards_subject",
+    memory = "2G",
+    port_forwards = [50051, 50052],
+    tags = ["manual"],
+    test = ":mock_test",
+)
+
 # --- Analysis tests ---
+
+port_forwards_test(
+    name = "port_forwards_test",
+    target_under_test = ":port_forwards_subject",
+)
 
 basic_env_vars_test(
     name = "basic_env_vars_test",

@@ -85,6 +85,35 @@ m.Shutdown(t)
 
 All `WaitFor*` methods accept retry options: `machine.WithRetryTimeout(2*time.Minute)`, `machine.WithRetryInterval(500*time.Millisecond)`.
 
+### Port Forwarding
+
+Forward guest ports to the host to enable direct network access (e.g., gRPC, HTTP) from test code:
+
+```starlark
+vmtest_config(
+    name = "vmconfig",
+    importpath = "example.com/myproject/tests/vmconfig",
+    kernel = "//my:kernel",
+    initrd = "//my:rootfs",
+    port_forwards = [8080, 50051],  # guest ports to forward
+)
+```
+
+```go
+func TestGRPC(t *testing.T) {
+    m := vmconfig.New(t)
+    m.WaitForOpenPort(t, 50051)
+
+    // Get the QEMU-assigned host port and dial directly
+    hostPort := m.ForwardedPort(50051)
+    conn, _ := grpc.Dial(fmt.Sprintf("localhost:%d", hostPort), grpc.WithInsecure())
+    client := pb.NewMyServiceClient(conn)
+    // ... test via direct gRPC from host
+}
+```
+
+Port forwarding uses QEMU's SLIRP user-mode networking with ephemeral host ports (`hostfwd=tcp::0-:PORT`). Guest services must bind `0.0.0.0` (not `127.0.0.1`) because SLIRP sends packets to the guest's network interface IP, not localhost.
+
 ## Starlark Rules
 
 Exported from `@rules_vmtest//vmtest:defs.bzl`:

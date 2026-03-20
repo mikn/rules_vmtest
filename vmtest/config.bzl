@@ -1,6 +1,7 @@
 """vmtest_config: a go_library that configures a VM via init() + runfiles."""
 
 load("@rules_go//go:def.bzl", "go_library")
+load("@rules_linux//linux:providers.bzl", "LinuxKernelInfo")
 
 _QEMU_TOOLCHAIN_TYPE = "@rules_qemu//qemu:toolchain_type"
 _SWTPM_TOOLCHAIN_TYPE = "@rules_qemu//qemu:swtpm_type"
@@ -31,9 +32,10 @@ def _vmtest_config_impl(ctx):
         data_files.append(qemu_info.qemu_img)
 
     # Boot configuration
-    if ctx.file.kernel:
-        rlocation_setenvs.append(("VMTEST_KERNEL", _to_rlocationpath(ctx, ctx.file.kernel)))
-        data_files.append(ctx.file.kernel)
+    if ctx.attr.kernel:
+        kernel_info = ctx.attr.kernel[LinuxKernelInfo]
+        rlocation_setenvs.append(("VMTEST_KERNEL", _to_rlocationpath(ctx, kernel_info.vmlinuz)))
+        data_files.append(kernel_info.vmlinuz)
     if ctx.file.initrd:
         rlocation_setenvs.append(("VMTEST_INITRD", _to_rlocationpath(ctx, ctx.file.initrd)))
         data_files.append(ctx.file.initrd)
@@ -44,8 +46,8 @@ def _vmtest_config_impl(ctx):
         data_files.append(ctx.file.iso)
 
     # UEFI firmware
-    ovmf_code = ctx.file.ovmf_code if ctx.file.ovmf_code else (qemu_info.ovmf_code if not ctx.file.kernel else None)
-    ovmf_vars = ctx.file.ovmf_vars if ctx.file.ovmf_vars else (qemu_info.ovmf_vars if not ctx.file.kernel else None)
+    ovmf_code = ctx.file.ovmf_code if ctx.file.ovmf_code else (qemu_info.ovmf_code if not ctx.attr.kernel else None)
+    ovmf_vars = ctx.file.ovmf_vars if ctx.file.ovmf_vars else (qemu_info.ovmf_vars if not ctx.attr.kernel else None)
     if ovmf_code:
         rlocation_setenvs.append(("VMTEST_OVMF_CODE", _to_rlocationpath(ctx, ovmf_code)))
         data_files.append(ovmf_code)
@@ -88,6 +90,10 @@ def _vmtest_config_impl(ctx):
     literal_setenvs.append(("VMTEST_NETWORK", ctx.attr.network))
     if ctx.attr.network == "bridge":
         literal_setenvs.append(("VMTEST_BRIDGE", ctx.attr.bridge_name))
+
+    # Port forwards
+    if ctx.attr.port_forwards:
+        literal_setenvs.append(("VMTEST_PORT_FORWARDS", ",".join([str(p) for p in ctx.attr.port_forwards])))
 
     # --- Generate Go source ---
     init_lines = []
@@ -137,6 +143,7 @@ var (
 \tWithRetryInterval = machine.WithRetryInterval
 \tWithUserNetwork   = machine.WithUserNetwork
 \tWithVMOption      = machine.WithVMOption
+\tWithPortForward   = machine.WithPortForward
 )
 """.format(
         pkg = pkg_name,
@@ -165,7 +172,7 @@ _vmtest_config = rule(
     implementation = _vmtest_config_impl,
     attrs = {
         "package_name": attr.string(mandatory = True),
-        "kernel": attr.label(allow_single_file = True),
+        "kernel": attr.label(providers = [LinuxKernelInfo]),
         "initrd": attr.label(allow_single_file = True),
         "cmdline": attr.string(),
         "iso": attr.label(allow_single_file = True),
@@ -178,6 +185,7 @@ _vmtest_config = rule(
         "tpm": attr.bool(default = False),
         "network": attr.string(default = "user", values = ["user", "bridge", "none"]),
         "bridge_name": attr.string(default = "mltt-br0"),
+        "port_forwards": attr.int_list(default = []),
     },
     toolchains = [
         _QEMU_TOOLCHAIN_TYPE,

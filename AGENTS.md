@@ -48,6 +48,9 @@ bazel run //:gazelle                # Regenerate BUILD files after Go changes
 ### Machine primitives
 
 - **`Machine.Background()`**: Uses `Agent.Background` RPC → `systemd-run --no-block --collect --` with argv (no shell). For shell commands in background: `m.Background(t, "bash", "-c", "cmd1 && cmd2")`.
+- **`Machine.ForwardedPort(guestPort)`**: Returns the host port that forwards to the given guest port. Delegates to `vm.ForwardedPort()`. Returns 0 if not configured.
+- **`WithPortForward(guestPort)`**: Machine option that requests a host-to-guest port forward. Wraps `vm.WithPortForward()`. Forces user-mode networking. Guest services must bind `0.0.0.0`.
+- **`VMTEST_PORT_FORWARDS` env var**: Comma-separated list of guest ports (e.g., `"50051,50052"`). Parsed in `buildVMOptsFromEnv` after `VMTEST_NETWORK`, so port forwards override `network = "none"`. Set by `vmtest_config` from the `port_forwards` BUILD attribute.
 - **E2E vmtest performance**: Uses `//build/linux/base:base_rootfs` (Debian Bookworm + systemd) + Debian kernel from `@usi_base`. Boots in ~2s with systemd, all 11 machine primitives pass in ~5s.
 
 ### vmtest Starlark macros
