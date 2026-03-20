@@ -83,3 +83,36 @@ func TestBuildVMOptsFromEnvNetworkNone(t *testing.T) {
 		t.Errorf("expected 1 option (no network), got %d", len(opts))
 	}
 }
+
+func TestWithPortForwardOption(t *testing.T) {
+	mc := &machineConfig{}
+	WithPortForward(50051)(mc)
+	WithPortForward(50052)(mc)
+
+	if len(mc.vmOpts) != 2 {
+		t.Fatalf("expected 2 vm options, got %d", len(mc.vmOpts))
+	}
+}
+
+func TestBuildVMOptsFromEnvPortForwards(t *testing.T) {
+	t.Setenv("VMTEST_PORT_FORWARDS", "50051,50052")
+
+	opts := buildVMOptsFromEnv(t)
+	// Should have default user net + 2 port forward options
+	// Port forwards come after VMTEST_NETWORK, overriding the default
+	if len(opts) < 3 {
+		t.Errorf("expected at least 3 options (user net + 2 port forwards), got %d", len(opts))
+	}
+}
+
+func TestBuildVMOptsFromEnvPortForwardsOverridesNone(t *testing.T) {
+	t.Setenv("VMTEST_NETWORK", "none")
+	t.Setenv("VMTEST_PORT_FORWARDS", "50051")
+
+	opts := buildVMOptsFromEnv(t)
+	// Should have: WithNoNetwork (1) + WithPortForward (1) = 2
+	// The WithPortForward forces user mode, overriding the "none" at runtime
+	if len(opts) != 2 {
+		t.Errorf("expected 2 options (no network + port forward override), got %d", len(opts))
+	}
+}

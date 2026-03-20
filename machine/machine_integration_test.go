@@ -360,6 +360,17 @@ func TestMachineListen(t *testing.T) {
 	}
 }
 
+func TestMachineForwardedPortNoVM(t *testing.T) {
+	// ForwardedPort should return 0 when no VM is present (no port map).
+	mock := &testAgent{}
+	m := newTestMachine(t, mock)
+
+	port := m.ForwardedPort(50051)
+	if port != 0 {
+		t.Errorf("expected ForwardedPort to return 0 without VM, got %d", port)
+	}
+}
+
 func TestMachineCopyFromHost(t *testing.T) {
 	var writtenPath string
 	var writtenContent []byte

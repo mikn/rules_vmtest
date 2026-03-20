@@ -58,6 +58,14 @@ func WithVMOption(opt vm.Option) Option {
 	}
 }
 
+// WithPortForward requests a host-to-guest port forward for the given guest port.
+// After the VM starts, use ForwardedPort() to get the QEMU-assigned host port.
+func WithPortForward(guestPort int) Option {
+	return func(c *machineConfig) {
+		c.vmOpts = append(c.vmOpts, vm.WithPortForward(guestPort))
+	}
+}
+
 // RetryOption configures retry behavior for polling operations.
 type RetryOption func(*retryConfig)
 
@@ -317,6 +325,15 @@ func (m *Machine) Shutdown(t testing.TB) {
 	if err := m.vm.Stop(); err != nil {
 		t.Fatalf("Shutdown: %v", err)
 	}
+}
+
+// ForwardedPort returns the host port that forwards to the given guest port.
+// Returns 0 if port forwarding is not configured or the port was not found.
+func (m *Machine) ForwardedPort(guestPort int) int {
+	if m.vm == nil {
+		return 0
+	}
+	return m.vm.ForwardedPort(guestPort)
 }
 
 // QMP returns the QMP client for low-level VM control.
@@ -870,6 +887,18 @@ func buildVMOptsFromEnv(t testing.TB) []vm.Option {
 		_ = bridge
 	default:
 		opts = append(opts, vm.WithUserNet())
+	}
+
+	// Port forwards override network mode (forces user-mode networking).
+	// Parsed after VMTEST_NETWORK so WithPortForward wins over WithNoNetwork.
+	if v := os.Getenv("VMTEST_PORT_FORWARDS"); v != "" {
+		for _, p := range strings.Split(v, ",") {
+			port, err := strconv.Atoi(strings.TrimSpace(p))
+			if err != nil {
+				t.Fatalf("VMTEST_PORT_FORWARDS: invalid port %q: %v", p, err)
+			}
+			opts = append(opts, vm.WithPortForward(port))
+		}
 	}
 
 	return opts

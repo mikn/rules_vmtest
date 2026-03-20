@@ -82,6 +82,10 @@ def _vm_go_test_impl(ctx):
     if ctx.attr.network == "bridge":
         env_lines.append('export VMTEST_BRIDGE="{}"'.format(ctx.attr.bridge_name))
 
+    # Port forwards
+    if ctx.attr.port_forwards:
+        env_lines.append('export VMTEST_PORT_FORWARDS="{}"'.format(",".join([str(p) for p in ctx.attr.port_forwards])))
+
     # Write the test wrapper script
     test_script = ctx.actions.declare_file(ctx.label.name + ".sh")
     ctx.actions.write(
@@ -179,6 +183,10 @@ vm_go_test = rule(
         "bridge_name": attr.string(
             default = "mltt-br0",
             doc = "Bridge name (only used when network = 'bridge')",
+        ),
+        "port_forwards": attr.int_list(
+            default = [],
+            doc = "Guest ports to forward to the host via SLIRP hostfwd",
         ),
     },
     toolchains = [

@@ -91,6 +91,10 @@ def _vmtest_config_impl(ctx):
     if ctx.attr.network == "bridge":
         literal_setenvs.append(("VMTEST_BRIDGE", ctx.attr.bridge_name))
 
+    # Port forwards
+    if ctx.attr.port_forwards:
+        literal_setenvs.append(("VMTEST_PORT_FORWARDS", ",".join([str(p) for p in ctx.attr.port_forwards])))
+
     # --- Generate Go source ---
     init_lines = []
     if rlocation_setenvs:
@@ -139,6 +143,7 @@ var (
 \tWithRetryInterval = machine.WithRetryInterval
 \tWithUserNetwork   = machine.WithUserNetwork
 \tWithVMOption      = machine.WithVMOption
+\tWithPortForward   = machine.WithPortForward
 )
 """.format(
         pkg = pkg_name,
@@ -180,6 +185,7 @@ _vmtest_config = rule(
         "tpm": attr.bool(default = False),
         "network": attr.string(default = "user", values = ["user", "bridge", "none"]),
         "bridge_name": attr.string(default = "mltt-br0"),
+        "port_forwards": attr.int_list(default = []),
     },
     toolchains = [
         _QEMU_TOOLCHAIN_TYPE,

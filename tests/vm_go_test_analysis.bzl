@@ -67,6 +67,24 @@ def _tpm_env_vars_test_impl(ctx):
 
 tpm_env_vars_test = analysistest.make(_tpm_env_vars_test_impl)
 
+# --- Test: vm_go_test with port_forwards sets VMTEST_PORT_FORWARDS ---
+
+def _port_forwards_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    target = analysistest.target_under_test(env)
+
+    actions = analysistest.target_actions(env)
+    write_actions = [a for a in actions if a.content != None]
+    asserts.true(env, len(write_actions) > 0, "should have at least one write action")
+
+    script = write_actions[0].content
+    asserts.true(env, "VMTEST_PORT_FORWARDS" in script, "should set VMTEST_PORT_FORWARDS")
+    asserts.true(env, "50051,50052" in script, "VMTEST_PORT_FORWARDS should contain 50051,50052")
+
+    return analysistest.end(env)
+
+port_forwards_test = analysistest.make(_port_forwards_test_impl)
+
 # --- Test: vm_go_test includes test binary in runfiles ---
 
 def _runfiles_test_impl(ctx):
