@@ -34,14 +34,31 @@ type machineConfig struct {
 }
 
 // WithBridge configures bridge networking, allocating a TAP device for this VM.
+// Each VM gets a unique locally-administered MAC derived from the TAP index so
+// that multiple VMs on the same bridge are distinguishable at L2.
 func WithBridge(b *vm.Bridge) Option {
 	return func(c *machineConfig) {
 		tap, err := b.AllocateTap()
 		if err != nil {
 			panic(fmt.Sprintf("WithBridge: %v", err))
 		}
-		c.vmOpts = append(c.vmOpts, vm.WithTapDevice(tap, b.Name))
+		mac := macFromTap(tap)
+		c.vmOpts = append(c.vmOpts, vm.WithTapDevice(tap, b.Name), vm.WithMacAddress(mac))
 	}
+}
+
+// macFromTap generates a locally-administered unicast MAC address from a TAP
+// device name (e.g. "mltt-tap3" → "02:00:00:00:00:03"). The 02 prefix sets
+// the locally-administered bit while keeping the unicast bit clear.
+func macFromTap(tap string) string {
+	idx := 0
+	if i := strings.LastIndex(tap, "tap"); i >= 0 {
+		n, err := strconv.Atoi(tap[i+3:])
+		if err == nil {
+			idx = n
+		}
+	}
+	return fmt.Sprintf("02:00:00:00:00:%02x", idx)
 }
 
 // WithUserNetwork configures user-mode (SLIRP) networking.

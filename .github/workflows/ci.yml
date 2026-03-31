@@ -6,7 +6,7 @@ on:
     branches: [main]
 
 jobs:
-  build-and-test:
+  build-and-test-linux:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,6 +28,42 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/bazel
+          key: bazel-${{ runner.os }}-${{ hashFiles('rules_vmtest/MODULE.bazel', 'rules_vmtest/MODULE.bazel.lock') }}
+          restore-keys: bazel-${{ runner.os }}-
+
+      - name: Build
+        working-directory: rules_vmtest
+        run: bazel build //...
+
+      - name: Test
+        working-directory: rules_vmtest
+        run: bazel test //...
+
+  build-and-test-macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: rules_vmtest
+
+      # rules_vmtest depends on sibling modules via local_path_override
+      - uses: actions/checkout@v4
+        with:
+          repository: mikn/rules_linux
+          path: rules_linux
+
+      - uses: actions/checkout@v4
+        with:
+          repository: mikn/rules_qemu
+          path: rules_qemu
+
+      - name: Install QEMU and build dependencies
+        run: brew install qemu autoconf automake libtool pkg-config
+
+      - name: Mount Bazel cache
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/bazel
           key: bazel-${{ runner.os }}-${{ hashFiles('rules_vmtest/MODULE.bazel', 'rules_vmtest/MODULE.bazel.lock') }}
           restore-keys: bazel-${{ runner.os }}-
 
