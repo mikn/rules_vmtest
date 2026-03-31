@@ -1,106 +1,108 @@
-"""Analysis tests for the vm_go_test Starlark rule."""
+"""Analysis tests for the vm_go_test Starlark rule (using rules_testing)."""
 
-load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
+load("@rules_testing//lib:analysis_test.bzl", "analysis_test")
+
+def _get_write_action_content(env, target):
+    """Return the content of the first FileWrite action on the target."""
+    actions = target.actions
+    write_actions = [a for a in actions if a.mnemonic == "FileWrite"]
+    env.expect.that_int(len(write_actions)).is_greater_than(0)
+    if not write_actions:
+        return ""
+    return write_actions[0].content
 
 # --- Test: vm_go_test generates script with correct env vars ---
 
-def _basic_env_vars_test_impl(ctx):
-    env = analysistest.begin(ctx)
-    target = analysistest.target_under_test(env)
-
+def _basic_env_vars_test_impl(env, target):
     # The rule should produce an executable
     files_to_run = target[DefaultInfo].files_to_run
-    asserts.true(env, files_to_run != None, "should have files_to_run")
-    asserts.true(env, files_to_run.executable != None, "should have an executable")
-    asserts.true(env, files_to_run.executable.basename.endswith(".sh"), "executable should be a shell script")
+    env.expect.that_bool(files_to_run != None).equals(True)
+    env.expect.that_bool(files_to_run.executable != None).equals(True)
+    env.expect.that_str(files_to_run.executable.basename).contains(".sh")
 
     # Check the generated script content via actions
-    actions = analysistest.target_actions(env)
-    write_actions = [a for a in actions if a.content != None]
-    asserts.true(env, len(write_actions) > 0, "should have at least one write action")
-
-    script = write_actions[0].content
-    asserts.true(env, "VMTEST_MEMORY" in script, "script should set VMTEST_MEMORY")
-    asserts.true(env, '"4G"' in script, "VMTEST_MEMORY should be 4G")
-    asserts.true(env, "VMTEST_CPUS" in script, "script should set VMTEST_CPUS")
-    asserts.true(env, '"4"' in script, "VMTEST_CPUS should be 4")
-    asserts.true(env, "VMTEST_NETWORK" in script, "script should set VMTEST_NETWORK")
-
-    return analysistest.end(env)
-
-basic_env_vars_test = analysistest.make(_basic_env_vars_test_impl)
+    script = _get_write_action_content(env, target)
+    env.expect.that_str(script).contains("VMTEST_MEMORY")
+    env.expect.that_str(script).contains('"4G"')
+    env.expect.that_str(script).contains("VMTEST_CPUS")
+    env.expect.that_str(script).contains('"4"')
+    env.expect.that_str(script).contains("VMTEST_NETWORK")
 
 # --- Test: vm_go_test with bridge networking sets bridge env vars ---
 
-def _bridge_network_test_impl(ctx):
-    env = analysistest.begin(ctx)
-    target = analysistest.target_under_test(env)
-
-    actions = analysistest.target_actions(env)
-    write_actions = [a for a in actions if a.content != None]
-    asserts.true(env, len(write_actions) > 0, "should have at least one write action")
-
-    script = write_actions[0].content
-    asserts.true(env, 'VMTEST_NETWORK="bridge"' in script, "should set VMTEST_NETWORK=bridge")
-    asserts.true(env, 'VMTEST_BRIDGE="test-br0"' in script, "should set VMTEST_BRIDGE=test-br0")
-
-    return analysistest.end(env)
-
-bridge_network_test = analysistest.make(_bridge_network_test_impl)
+def _bridge_network_test_impl(env, target):
+    script = _get_write_action_content(env, target)
+    env.expect.that_str(script).contains('VMTEST_NETWORK="bridge"')
+    env.expect.that_str(script).contains('VMTEST_BRIDGE="test-br0"')
 
 # --- Test: vm_go_test with TPM sets TPM env vars ---
 
-def _tpm_env_vars_test_impl(ctx):
-    env = analysistest.begin(ctx)
-    target = analysistest.target_under_test(env)
-
-    actions = analysistest.target_actions(env)
-    write_actions = [a for a in actions if a.content != None]
-    asserts.true(env, len(write_actions) > 0, "should have at least one write action")
-
-    script = write_actions[0].content
-    asserts.true(env, 'VMTEST_TPM="true"' in script, "should set VMTEST_TPM=true")
-    asserts.true(env, "VMTEST_SWTPM" in script, "should set VMTEST_SWTPM")
-    asserts.true(env, "VMTEST_SWTPM_SETUP" in script, "should set VMTEST_SWTPM_SETUP")
-
-    return analysistest.end(env)
-
-tpm_env_vars_test = analysistest.make(_tpm_env_vars_test_impl)
+def _tpm_env_vars_test_impl(env, target):
+    script = _get_write_action_content(env, target)
+    env.expect.that_str(script).contains('VMTEST_TPM="true"')
+    env.expect.that_str(script).contains("VMTEST_SWTPM")
+    env.expect.that_str(script).contains("VMTEST_SWTPM_SETUP")
 
 # --- Test: vm_go_test with port_forwards sets VMTEST_PORT_FORWARDS ---
 
-def _port_forwards_test_impl(ctx):
-    env = analysistest.begin(ctx)
-    target = analysistest.target_under_test(env)
-
-    actions = analysistest.target_actions(env)
-    write_actions = [a for a in actions if a.content != None]
-    asserts.true(env, len(write_actions) > 0, "should have at least one write action")
-
-    script = write_actions[0].content
-    asserts.true(env, "VMTEST_PORT_FORWARDS" in script, "should set VMTEST_PORT_FORWARDS")
-    asserts.true(env, "50051,50052" in script, "VMTEST_PORT_FORWARDS should contain 50051,50052")
-
-    return analysistest.end(env)
-
-port_forwards_test = analysistest.make(_port_forwards_test_impl)
+def _port_forwards_test_impl(env, target):
+    script = _get_write_action_content(env, target)
+    env.expect.that_str(script).contains("VMTEST_PORT_FORWARDS")
+    env.expect.that_str(script).contains("50051,50052")
 
 # --- Test: vm_go_test includes test binary in runfiles ---
 
-def _runfiles_test_impl(ctx):
-    env = analysistest.begin(ctx)
-    target = analysistest.target_under_test(env)
-
+def _runfiles_test_impl(env, target):
     runfiles = target[DefaultInfo].default_runfiles.files.to_list()
     basenames = [f.basename for f in runfiles]
+    has_test_binary = "mock_test" in basenames or "mock_test.sh" in basenames
 
-    # The test binary should be in runfiles
-    asserts.true(
-        env,
-        "mock_test" in basenames or "mock_test.sh" in basenames,
-        "test binary should be in runfiles, got: " + str(basenames),
+    # Verify the test binary (or its wrapper) appears in runfiles.
+    env.expect.that_bool(has_test_binary).equals(True)
+
+def vm_go_test_analysis_test_suite(name):
+    """Define the test suite for vm_go_test analysis tests.
+
+    Args:
+        name: The name of the test suite target.
+    """
+    analysis_test(
+        name = "basic_env_vars_test",
+        impl = _basic_env_vars_test_impl,
+        target = "//tests:basic_subject",
     )
 
-    return analysistest.end(env)
+    analysis_test(
+        name = "bridge_network_test",
+        impl = _bridge_network_test_impl,
+        target = "//tests:bridge_subject",
+    )
 
-runfiles_test = analysistest.make(_runfiles_test_impl)
+    analysis_test(
+        name = "tpm_env_vars_test",
+        impl = _tpm_env_vars_test_impl,
+        target = "//tests:tpm_subject",
+    )
+
+    analysis_test(
+        name = "port_forwards_test",
+        impl = _port_forwards_test_impl,
+        target = "//tests:port_forwards_subject",
+    )
+
+    analysis_test(
+        name = "runfiles_test",
+        impl = _runfiles_test_impl,
+        target = "//tests:basic_subject",
+    )
+
+    native.test_suite(
+        name = name,
+        tests = [
+            ":basic_env_vars_test",
+            ":bridge_network_test",
+            ":tpm_env_vars_test",
+            ":port_forwards_test",
+            ":runfiles_test",
+        ],
+    )

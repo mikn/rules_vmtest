@@ -1,6 +1,11 @@
+## NOTE: rules_vmtest depends on rules_linux and rules_qemu which are not yet
+## published to BCR. Before submitting to BCR, those modules must either be
+## published first, or the local_path_override entries in MODULE.bazel must be
+## replaced with appropriate registry references / patches.
 matrix:
   platform:
-    - ubuntu_22.04
+    - ubuntu2204
+    - macos_arm64
   bazel:
     - 8.x
     - 9.x

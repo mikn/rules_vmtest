@@ -20,7 +20,7 @@ def _vmtest_config_impl(ctx):
 
     # Collect files that need rlocation resolution and literal env vars.
     rlocation_setenvs = []  # list of (env_var, rlocation_path)
-    literal_setenvs = []    # list of (env_var, value)
+    literal_setenvs = []  # list of (env_var, value)
     data_files = []
 
     # QEMU binaries from toolchain

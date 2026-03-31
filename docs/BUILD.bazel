@@ -1,0 +1,8 @@
+load("@stardoc//stardoc:stardoc.bzl", "stardoc")
+
+stardoc(
+    name = "defs",
+    out = "defs.md",
+    input = "//vmtest:defs.bzl",
+    deps = ["//vmtest:defs_bzl"],
+)

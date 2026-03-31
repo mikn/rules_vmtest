@@ -3,23 +3,23 @@ load("@rules_vmtest//vmtest:config.bzl", "vmtest_config")
 
 vmtest_config(
     name = "vmconfig",
-    importpath = "github.com/mikn/rules_vmtest/examples/systemd_service/vmconfig",
     # --- Replace these with your own targets ---
     # kernel = "//your/kernel:vmlinuz",
     # initrd = "//your/rootfs:initrd",
     cmdline = "console=ttyS0 panic=-1 rdinit=/init",
-    memory = "2G",
     cpus = 2,
+    importpath = "github.com/mikn/rules_vmtest/examples/systemd_service/vmconfig",
+    memory = "2G",
 )
 
 go_test(
     name = "service_test",
     srcs = ["service_test.go"],
-    deps = [":vmconfig"],
     tags = [
         "exclusive",
         "manual",
         "no-sandbox",
         "requires-kvm",
     ],
+    deps = [":vmconfig"],
 )
