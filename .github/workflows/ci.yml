@@ -18,7 +18,7 @@ jobs:
       - name: Check formatting and lint
         run: buildifier -mode=check -lint=warn -r .
 
-  build-and-test-linux:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
