@@ -29,14 +29,14 @@ bzl_library(
     name = "vm_go_test_bzl",
     srcs = ["vm_go_test.bzl"],
     visibility = ["//visibility:public"],
-    deps = ["@rules_linux//linux:providers"],
+    # Note: loads @rules_linux//linux:providers.bzl but rules_linux does not
+    # yet publish bzl_library targets to BCR. Omitted to avoid resolution failure.
 )
 
 bzl_library(
     name = "vm_test_bzl",
     srcs = ["vm_test.bzl"],
     visibility = ["//visibility:public"],
-    deps = ["@rules_linux//linux:providers"],
 )
 
 bzl_library(
@@ -45,7 +45,6 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         "@rules_go//go:def",
-        "@rules_linux//linux:providers",
     ],
 )
 
@@ -60,7 +59,6 @@ bzl_library(
     name = "test_initrd_bzl",
     srcs = ["test_initrd.bzl"],
     visibility = ["//visibility:public"],
-    deps = [
-        "@rules_linux//linux:defs",
-    ],
+    # Note: loads @rules_linux//linux:defs.bzl but rules_linux does not
+    # yet publish bzl_library targets to BCR.
 )

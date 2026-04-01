@@ -14,10 +14,10 @@ bazel_dep(name = "rules_pkg", version = "1.2.0")
 bazel_dep(name = "aspect_bazel_lib", version = "2.22.5")
 
 # --- Dev dependencies (only active when rules_vmtest is the root module) ---
-bazel_dep(name = "gazelle", version = "0.47.0", dev_dependency = True)
+bazel_dep(name = "gazelle", version = "0.48.0", dev_dependency = True)
 bazel_dep(name = "rules_shell", version = "0.6.1", dev_dependency = True)
 bazel_dep(name = "rules_testing", version = "0.9.0", dev_dependency = True)
-bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True)
+bazel_dep(name = "stardoc", version = "0.8.1", dev_dependency = True)
 
 # Local sibling overrides — will be replaced with BCR registry refs
 local_path_override(
