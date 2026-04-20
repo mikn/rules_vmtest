@@ -1,0 +1,9 @@
+module(name = "rules_vmtest_smoke_test")
+
+bazel_dep(name = "rules_vmtest", version = "0.1.0")
+bazel_dep(name = "bazel_skylib", version = "1.9.0")
+
+local_path_override(
+    module_name = "rules_vmtest",
+    path = "../..",
+)

@@ -1,0 +1,12 @@
+load("@stardoc//stardoc:stardoc.bzl", "stardoc")
+
+# NOTE: This target requires @rules_linux to export bzl_library targets
+# (available once rules_linux BCR readiness PR is merged). Until then,
+# build explicitly: bazel build //docs:defs
+stardoc(
+    name = "defs",
+    out = "defs.md",
+    input = "//vmtest:defs.bzl",
+    tags = ["manual"],
+    deps = ["//vmtest:defs_bzl"],
+)

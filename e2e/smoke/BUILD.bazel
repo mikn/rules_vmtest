@@ -1,0 +1,10 @@
+# Smoke test: verifies that the public bzl_library target can be built.
+# This validates that the Starlark API and its transitive deps resolve correctly.
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+
+build_test(
+    name = "smoke_test",
+    targets = [
+        "@rules_vmtest//vmtest:defs_bzl",
+    ],
+)

@@ -1,15 +1,11 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
-load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@rules_qemu//qemu:toolchain.bzl", "qemu_toolchain")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@rules_vmtest//vmtest:vm_go_test.bzl", "vm_go_test")
 load(":mock_toolchains.bzl", "mock_swtpm_toolchain")
 load(
     ":vm_go_test_analysis.bzl",
-    "basic_env_vars_test",
-    "bridge_network_test",
-    "port_forwards_test",
-    "runfiles_test",
-    "tpm_env_vars_test",
+    "vm_go_test_analysis_test_suite",
 )
 
 # --- Mock QEMU toolchain for testing ---
@@ -113,36 +109,18 @@ vm_go_test(
 vm_go_test(
     name = "port_forwards_subject",
     memory = "2G",
-    port_forwards = [50051, 50052],
+    port_forwards = [
+        50051,
+        50052,
+    ],
     tags = ["manual"],
     test = ":mock_test",
 )
 
 # --- Analysis tests ---
 
-port_forwards_test(
-    name = "port_forwards_test",
-    target_under_test = ":port_forwards_subject",
-)
-
-basic_env_vars_test(
-    name = "basic_env_vars_test",
-    target_under_test = ":basic_subject",
-)
-
-bridge_network_test(
-    name = "bridge_network_test",
-    target_under_test = ":bridge_subject",
-)
-
-tpm_env_vars_test(
-    name = "tpm_env_vars_test",
-    target_under_test = ":tpm_subject",
-)
-
-runfiles_test(
-    name = "runfiles_test",
-    target_under_test = ":basic_subject",
+vm_go_test_analysis_test_suite(
+    name = "vm_go_test_analysis_tests",
 )
 
 # --- Build tests for Go artifacts ---
@@ -157,4 +135,3 @@ build_test(
         "@rules_qemu//vm",
     ],
 )
-
